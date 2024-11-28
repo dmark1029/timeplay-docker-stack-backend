@@ -1,0 +1,28 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  sessions:
+    image: "${IMAGE_SESSIONS}"
+    container_name: sessions
+    environment:
+      - PORT=80
+      - dbUri=${MONGO_APP_CONNECTION_STRING}/sessions${MONGO_CONNECTION_STRING_PROPERTIES}
+      - authDebug=${AUTH_DEBUG}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - '${HOST_NAME}:${HOST_IP}'
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped

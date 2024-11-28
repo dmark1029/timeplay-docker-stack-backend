@@ -1,0 +1,36 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  gs-package-service:
+    image: "${IMAGE_PACKAGE_SERVICE}"
+    container_name: gs-package-service
+    environment:
+      - PORT=80
+      - dbUri=${MONGO_APP_CONNECTION_STRING}/package-service${MONGO_CONNECTION_STRING_PROPERTIES}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - remote_token_uri=${REMOTE_AUTH_URL}
+      - remote_id=${REMOTE_ID}
+      - remote_secret=${REMOTE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - authDebug=${AUTH_DEBUG}
+      - storageHandler=fs
+      - fsFolder=/packages
+      - fsServerUrl=${HOST_URL}/packages
+    volumes:
+      - ${HOST_DATA}/packages:/packages
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - '${HOST_NAME}:${HOST_IP}'
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped

@@ -1,0 +1,406 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  # nginx that serves static webpage and entry point to backend sevices
+  proxy-server:
+    image: "${IMAGE_PROXY_SERVER}"
+    container_name: proxy-server
+    environment:
+      - NGINX_WORKER_PROCESSES=${NGINX_WORKER_PROCESSES}
+      - NGINX_WORKER_CONNECTIONS=${NGINX_WORKER_CONNECTIONS}
+      - NGINX_AUTO_UPGRADE_DOMAINS=${NGINX_AUTO_UPGRADE_DOMAINS}
+      - RMB_WEBSOCKET_PORT=${RMB_WEBSOCKET_PORT}
+      - CATCH_ALL_SERVICE=${CATCH_ALL_SERVICE}
+      - REG_FORM_CONFIG={
+        "webClientServiceUrl":"${HOST_URL}",
+        "adaGame":${ADA_GAME:-false}}
+    ports:
+      - 80:80
+      - 443:443
+      # - 3000-3010:3000-3010
+    volumes:
+      - ${HOST_DATA}/assets:/usr/share/nginx/assets:ro
+      - ${HOST_DATA}/packages:/usr/share/nginx/packages:ro
+      - ${CERT_CONFIG}:/etc/ssl/timeplay:ro
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    networks:
+      - tp3-network
+    restart: unless-stopped
+
+  redis:
+    image: "${IMAGE_REDIS}"
+    container_name: redis
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    healthcheck:
+      test: redis-cli ping
+      interval: 10s
+      retries: 10
+      timeout: 5s
+    restart: unless-stopped
+
+  mongodb:
+    image: "${IMAGE_MONGODB}"
+    container_name: mongodb
+    command: --quiet --tlsMode allowTLS --tlsCertificateKeyFile /certs/timeplay.pem
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+      - MONGO_APP_USERNAME=${MONGO_APP_USERNAME}
+      - MONGO_APP_PASSWORD=${MONGO_APP_PASSWORD}
+      - MONGO_RO_USERNAME=${MONGO_RO_USERNAME}
+      - MONGO_RO_PASSWORD=${MONGO_RO_PASSWORD}
+    volumes:
+      - ${HOST_DATA}/dbdata:/data/db
+      - ${HOST_CONFIG}/mongodb/init-db.sh:/docker-entrypoint-initdb.d/1-init-db.sh:ro
+      - ${CERT_CONFIG}:/certs:ro
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    healthcheck:
+      test: mongo -u "$$MONGO_INITDB_ROOT_USERNAME" -p "$$MONGO_INITDB_ROOT_PASSWORD" --eval "db.runCommand({serverStatus:1}).ok" --quiet | grep 1
+      interval: 10s
+      retries: 10
+      timeout: 5s
+    restart: unless-stopped
+
+  rabbitmq:
+    image: "${IMAGE_RABBITMQ}"
+    container_name: rabbitmq
+    ports:
+      - 5672:5672 # tcp
+      - 15674:15674 # secure websocket
+      - 15672:15672 # management console
+    environment:
+      - RABBITMQ_NODENAME=rabbitmq@localhost
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+    volumes:
+      - ${HOST_DATA}/rabbitmq:/var/lib/rabbitmq
+      # - ${HOST_CONFIG}/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      retries: 10
+      timeout: 5s
+    restart: unless-stopped
+
+  # allows rmb-pool to spawn/delete task containers
+  docker-socket-proxy:
+    image: "${IMAGE_DOCKER_SOCKET_PROXY}"
+    container_name: docker-socket-proxy
+    environment:
+      - POST=1
+      - IMAGES=1
+      - VERSION=1
+      - CONTAINERS=1
+      - LOG_LEVEL=warning
+    # enable this port to debug from host
+    # ports:
+    #     - 2375:2375
+    volumes:
+      - ${HOST_DOCKER_SOCK}:/var/run/docker.sock
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    healthcheck:
+      test: wget --spider http://127.0.0.1:2375/_ping
+      interval: 10s
+      retries: 10
+      timeout: 5s
+    restart: unless-stopped
+
+  web-client-service:
+    image: "${IMAGE_WCS}"
+    container_name: web-client-service
+    environment:
+      - PORT=80
+      - dbUri=${MONGO_APP_CONNECTION_STRING}/web-client-service${MONGO_CONNECTION_STRING_PROPERTIES}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - guest_id=${AUTH_GUEST_ID}
+      - guest_secret=${AUTH_GUEST_SECRET}
+      - authDebug=${AUTH_DEBUG}
+      - cookieDomain=${HOST_NAME}
+      - jwtCookieTTL=${JWT_COOKIE_TTL}
+      - defaultApp=${WEB_CLIENT_APP}
+      - clientConfig={
+        "assetManagerUrl":"${EXTERNAL_URL_ASSET_MANAGER}",
+        "DEPLOYMENT":"TP3",
+        "sendAssetDownloadCompletePost":"room",
+        "gameRoomUrl":"${EXTERNAL_URL_GAME_ROOM}",
+        "clientCookieName":"auth-account",
+        "cookieDomain":"${HOST_NAME}",
+        "configCookieName":"config",
+        "metaCookieName":"meta",
+        "passengerCookieName":"passenger",
+        "webClientServiceUrl":"${HOST_URL}",
+        "SURVEY_URL":"${SURVEY_URL}",
+        "backgroundImage":"./common/img/timeplay_home.png"}
+      - webClientUrl=${HOST_URL}/frontend/web-client
+      - registrationFormUrl=${HOST_URL}/frontend/registration-form
+      - stack_partner=${STACK_PARTNER}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  game-room:
+    image: "${IMAGE_ROOM}"
+    container_name: game-room
+    environment:
+      - PORT=80
+      - dbUri=${MONGO_APP_CONNECTION_STRING}/game-room${MONGO_CONNECTION_STRING_PROPERTIES}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - authDebug=${AUTH_DEBUG}
+      - amqpHost=
+      - amqpUri=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      - amqpExtUri=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@${HOST_NAME}:5672
+      - amqpQueue=com.timeplay.room-${STACK_ID}
+      - exchangeOptions={
+        "durable":true,
+        "autoDelete":true}
+      - stack=${STACK_ID}
+      - joincode=
+      - joincodePattern=0
+      - joincodeLength=6
+      - channelName=${ROOM_CHANNEL_NAME}
+      - rmbPool=http://task-spawner
+      - dispatcherRabbitUri=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      - dispatcherRabbitQueue=${DISPATCHER_RABBIT_QUEUE}
+      - stackConfig={
+        "appConfig":{
+        "DEPLOYMENT":"TP3",
+        "assetManagerUrl":"${EXTERNAL_URL_ASSET_MANAGER}",
+        "backgroundImage":"./common/img/timeplay_home.png",
+        "clientCookieName":"auth-account",
+        "configCookieName":"config",
+        "gameRoomUrl":"${EXTERNAL_URL_GAME_ROOM}",
+        "packageServiceUrl":"${EXTERNAL_URL_GS_PACKAGE_SERVICE}",
+        "sendAssetDownloadCompletePost":"room",
+        "webClientServiceUrl":"${HOST_URL}"},
+        "userCountUrl":"${INTERNAL_URL_GAME_ROOM}/user/count",
+        "joinRoomUrl":"${INTERNAL_URL_GAME_ROOM}/room/join"}
+      - require_inventory=${REQUIRE_INVENTORY}
+      - suggest_payment=${SUGGEST_PAYMENT}
+      - validate_inventory_uri=${VALIDATE_INVENTORY_URI}
+      - expireInSec=${ROOM_EXPIRY_SEC}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      task-spawner:
+        condition: service_started
+    restart: unless-stopped
+
+  task-spawner:
+    image: "${IMAGE_TASK_SPAWNER}"
+    container_name: task-spawner
+    environment:
+      - PORT=80
+      - dbType=redis
+      - dbUrl=redis://redis:6379
+      - authDebug=${AUTH_DEBUG}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - taskPrefix=task-
+      - monitorIntervalSec=2
+      - taskPoolUri=http://task-spawner
+      - platform=docker
+      - containerStartupTimeoutSeconds=${CONTAINER_STARTUP_TIMEOUT_SECONDS}
+      - tcpPortRange=[${RMB_TCP_PORT_LOW},${RMB_TCP_PORT_HIGH}]
+      - rmbDocker={
+          "dockerHost":"http://docker-socket-proxy:2375",
+          "image":"${IMAGE_RMB}",
+          "hostConfig":{
+              "NetworkMode":"tp3-network",
+              "ExtraHosts":["${HOST_NAME}:${HOST_IP}"],
+              "Ulimits":[{
+                  "Name":"nofile","Soft":${ULIMIT},"Hard":${ULIMIT}}]},
+          "tcpHost":"${HOST_NAME}",
+          "websocketHost":"wss://${HOST_NAME}"}
+      - busConfigJson={
+          "Logging":"${RMB_LOGGING}",
+          "BusCommand":{
+            "Code":1,
+            "Bus":{
+                "Name":"ToBeGenerated",
+                "MotherShip":{
+                    "Limit":1000,
+                    "URI":"ToBeGenerated"},
+                "Listening":[{
+                    "Protocol":1,
+                    "Param":":ToBeAssigned"},{
+                    "Protocol":2,
+                    "Param":":${RMB_WEBSOCKET_PORT}"}],
+                "SessionManager":{
+                    "RabbitMQ":{
+                        "URI":"amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672",
+                        "Queue":"com.timeplay.session-${STACK_ID}"},
+                    "Url":"http://session-manager"},
+                "Room":{
+                    "URI":"amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672",
+                    "Queue":"com.timeplay.room-${STACK_ID}"},
+                "RemoteActors":{
+                    "wheeloffortune":{
+                        "mothership":"./wheeloffortune/mothership",
+                        "satellite":"./wheeloffortune/satellite"},
+                    "familyfeud":{
+                        "mothership":"./familyfeud/mothership",
+                        "satellite":"./familyfeud/satellite"}},
+                "Auth":{
+                    "auth_token_uri":"${AUTH_URL_TOKEN}",
+                    "client_id":"${AUTH_SERVICE_ID}",
+                    "client_secret":"${AUTH_SERVICE_SECRET}"},
+                "license":"ToBeGenerated"},
+            "IntValue":0},
+        "auth":{
+            "url":"${AUTH_URL}",
+            "auth_token_uri":"${AUTH_URL_TOKEN}",
+            "client_id":"${AUTH_SERVICE_ID}",
+            "client_secret":"${AUTH_SERVICE_SECRET}"},
+        "monolith":{
+            "url":"http://ships-service"},
+        "license":"ToBeGenerated"}
+      - firebaseAccountJson=${FIREBASE_ACCOUNT}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      docker-socket-proxy:
+        condition: service_healthy
+    restart: unless-stopped
+
+  room-message-bus:
+    image: "${IMAGE_RMB}"
+    container_name: dummy-rmb
+    networks:
+      - tp3-network
+
+  session-manager:
+    image: "${IMAGE_SESSION_MANAGER}"
+    container_name: session-manager
+    environment:
+      - PORT=80
+      - dbUri=${MONGO_APP_CONNECTION_STRING}/session-manager${MONGO_CONNECTION_STRING_PROPERTIES}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - authDebug=${AUTH_DEBUG}
+      - shipsServiceUrl=${INTERNAL_URL_SHIPS_SERVICE}
+      - gameRoomService=${INTERNAL_URL_GAME_ROOM}
+      - portalService=${PORTAL_DATALOADER_URL}
+      - dataloaderUrl=${DATALOADER_URL}
+      - rabbitmqURI=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      - rabbitmqQueue=com.timeplay.session-${STACK_ID}
+      - vaultRabbitmqURI=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      - vaultRabbitmqQueue=com.timeplay.vault-${STACK_ID}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  dispatcher:
+    image: "${IMAGE_DISPATCHER}"
+    container_name: dispatcher
+    environment:
+      - PORT=80
+      - dbUri=${MONGO_APP_CONNECTION_STRING}/dispatcher${MONGO_CONNECTION_STRING_PROPERTIES}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - guest_id=${AUTH_GUEST_ID}
+      - guest_secret=${AUTH_GUEST_SECRET}
+      - authDebug=${AUTH_DEBUG}
+      - rabbitmq_uri=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      - rabbitmq_queue=${DISPATCHER_RABBIT_QUEUE}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped

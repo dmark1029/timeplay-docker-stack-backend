@@ -1,0 +1,46 @@
+###
+### Rename this file to docker-compose.overrides.yml and enable/disable what you need
+###
+
+services:
+    proxy-server:
+        volumes:
+            # Web client override
+            - <Projects folder on your PC>\web-client\build:/usr/share/nginx/frontend/web-client
+
+            # PopUp Bingo controller override
+            # - <Projects folder on your PC>\bingoplus-controller\build:/usr/share/nginx/frontend/web-client/games/bingoplus
+
+            # Trivia overrides
+            # - <Projects folder on your PC>\genericinteractivegame-rmb-controller-ada\build:/usr/share/nginx/frontend/web-client/games/genericinteractivegame-rmb-ada
+            # - <Projects folder on your PC>\triviaplus-rmb-controller-ada\build:/usr/share/nginx/frontend/web-client/games/triviaplus-rmb-ada
+            # - <Projects folder on your PC>\pickthreeplus-rmb-controller-ada\build:/usr/share/nginx/frontend/web-client/games/pickthreeplus-rmb-ada
+            # - <Projects folder on your PC>\dashboard-rmb-controller-ada\build:/usr/share/nginx/frontend/web-client/games/dashboard-ada
+            # - <Projects folder on your PC>\bettaker-rmb-controller-ada\build:/usr/share/nginx/frontend/web-client/games/bettaker-ada
+            # - <Projects folder on your PC>\leaderboard-rmb-controller-ada\build:/usr/share/nginx/frontend/web-client/games/leaderboard-rmb-ada
+            
+            # Trivia (non-ADA) overrides
+            # - <Projects folder on your PC>\triviaplus-rmb-controller\build:/usr/share/nginx/frontend/web-client/games/triviaplus-rmb
+            # - <Projects folder on your PC>\leaderboard-rmb-controller\build:/usr/share/nginx/frontend/web-client/games/leaderboard-rmb
+            # - <Projects folder on your PC>\genericinteractivegame-rmb-controller\build:/usr/share/nginx/frontend/web-client/games/genericinteractivegame-rmb
+            # - <Projects folder on your PC>\pickthreeplus-rmb-controller\build:/usr/share/nginx/frontend/web-client/games/pickthreeplus-rmb
+            # - <Projects folder on your PC>\dashboard-rmb-controller\build:/usr/share/nginx/frontend/web-client/games/dashboard
+            # - <Projects folder on your PC>\bettaker-rmb-controller\build:/usr/share/nginx/frontend/web-client/games/bettaker
+
+            # Wheel of Fortune controller override
+            # - <Projects folder on your PC>\wof-controller\build:/usr/share/nginx/frontend/web-client/games/wheeloffortune
+
+            # OpCon override
+            # - <Projects folder on your PC>\bingo-opcon\public\dashboard:/usr/share/nginx/frontend/bingo-opcon
+
+            # Admin Service override
+            # - <Projects folder on your PC>\admin-service\public\dashboard:/usr/share/nginx/frontend/admin-service
+
+            # User Dashboard override
+            # - <Projects folder on your PC>\user-dashboard\public\dashboard:/usr/share/nginx/frontend/user-dashboard
+
+            # Playlist Manager UI override
+            # - <Projects folder on your PC>\playlist-manager\public\dashboard:/usr/share/nginx/frontend/playlist-manager
+
+            # Registration Form override
+            # - <Projects folder on your PC>\registration-form\public\dashboard:/usr/share/nginx/frontend/registration-form

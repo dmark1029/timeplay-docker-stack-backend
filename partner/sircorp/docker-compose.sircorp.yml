@@ -1,0 +1,21 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  proxy-server:
+    environment:
+      - GS_LITE_CONFIG={
+        "tokenUrl":"${AUTH_TOKEN_URL}",
+        "roomUrl":"${EXTERNAL_URL_GAME_ROOM}",
+        "serviceTokenClientId":"${AUTH_SERVICE_ID}",
+        "serviceTokenClientSecret":"${AUTH_SERVICE_SECRET}",
+        "serviceTokenGrantType":"client_credentials",
+        "location":"${HOST_NAME}",
+        "roomName":"${STACK_ID}",
+        "roomMaxPlayers":250,
+        "roomLicenseId":"${GS_LICENSE}",
+        "playlistManagerUrl":"${EXTERNAL_URL_PLAYLIST_MANAGER}",
+        "assetsManagerUrl":"${EXTERNAL_URL_ASSET_MANAGER}",
+        "targetPlaylist":"5334",
+        "authDebug":${AUTH_DEBUG}}

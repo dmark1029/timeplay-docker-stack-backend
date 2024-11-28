@@ -1,0 +1,15 @@
+services:
+    transaction-service:
+        environment:
+            - CARNIVAL_VALIDATEACCOUNT_URL=${CARNIVAL_VALIDATEACCOUNT_URL}
+            - CARNIVAL_POSTSALE_URL=${CARNIVAL_POSTSALE_URL}
+            - CARNIVAL_POSTRETURN_URL=${CARNIVAL_POSTRETURN_URL}
+            - CARNIVAL_ITEM_IDS=${CARNIVAL_ITEM_IDS}
+
+    postgres:
+        ports:
+            - 5432:5432
+
+    mongodb:
+        ports:
+            - 27017:27017

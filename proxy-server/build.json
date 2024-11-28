@@ -1,0 +1,282 @@
+{
+  "greetings": "Building Proxy Server image",
+  "workspace": "staging",
+  "cleanWorkspace": true,
+  "directives": [
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "timeplay-3-snapshot-local",
+      "project": "timeplay-3",
+      "gitRepo": "playlist-manager",
+      "branch": "1.3.2",
+      "buildNum": "7",
+      "subPath": "playlist-manager-frontend.zip",
+      "dest": "./playlist-manager",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "timeplay-3-snapshot-local",
+      "project": "timeplay-3",
+      "gitRepo": "gs-package-service",
+      "branch": "1.2.2",
+      "buildNum": "10",
+      "subPath": "gs-package-service-frontend.zip",
+      "dest": "./gs-package-service",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "timeplay-3-snapshot-local",
+      "project": "timeplay-3",
+      "gitRepo": "registration-form",
+      "branch": "1.1.1",
+      "buildNum": "4",
+      "subPath": "public/dashboard",
+      "dest": "./registration-form",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "mobile-snapshot-local",
+      "project": "mobile",
+      "gitRepo": "web-client",
+      "branch": "1.7.0",
+      "buildNum": "7",
+      "dest": "./web-client",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "ships-snapshot-local",
+      "project": "ships",
+      "gitRepo": "admin-service",
+      "branch": "2.0.0",
+      "buildNum": "61",
+      "subPath": "admin-service.zip",
+      "dest": "./admin-service",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "ships-snapshot-local",
+      "project": "ships",
+      "gitRepo": "user-dashboard",
+      "branch": "2.0.0",
+      "buildNum": "8",
+      "subPath": "user-dashboard.zip",
+      "dest": "./user-dashboard",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "timeplay-3-snapshot-local",
+      "project": "timeplay-3",
+      "gitRepo": "tp3-opcon",
+      "branch": "2.0.0",
+      "buildNum": "9",
+      "subPath": "tp3-opcon.zip",
+      "dest": "./tp3-opcon",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "game-content-4-snapshot-local",
+      "project": "game-content-4",
+      "gitRepo": "bettaker-controller",
+      "branch": "1.0.0",
+      "buildNum": "9",
+      "dest": "./web-client/games/bettaker",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "ships-snapshot-local",
+      "project": "ships",
+      "gitRepo": "bettaker-rmb-controller-ada",
+      "branch": "2.0.0",
+      "buildNum": "7",
+      "dest": "./web-client/games/bettaker-ada",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "game-content-4-snapshot-local",
+      "project": "game-content-4",
+      "gitRepo": "dashboard-controller",
+      "branch": "2.0.0",
+      "buildNum": "2",
+      "dest": "./web-client/games/dashboard",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "ships-snapshot-local",
+      "project": "ships",
+      "gitRepo": "dashboard-rmb-controller-ada",
+      "branch": "2.0.0",
+      "buildNum": "6",
+      "dest": "./web-client/games/dashboard-ada",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "game-content-4-snapshot-local",
+      "project": "game-content-4",
+      "gitRepo": "genericinteractivegame-rmb-controller",
+      "branch": "2.0.0",
+      "buildNum": "3",
+      "dest": "./web-client/games/genericinteractivegame-rmb",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "ships-snapshot-local",
+      "project": "ships",
+      "gitRepo": "genericinteractivegame-rmb-controller-ada",
+      "branch": "2.0.0",
+      "buildNum": "10",
+      "dest": "./web-client/games/genericinteractivegame-rmb-ada",
+      "extract": true
+    },
+
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "game-content-4-snapshot-local",
+      "project": "game-content-4",
+      "gitRepo": "leaderboard-rmb-controller",
+      "branch": "1.0.2",
+      "buildNum": "1",
+      "dest": "./web-client/games/leaderboard-rmb",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "ships-snapshot-local",
+      "project": "ships",
+      "gitRepo": "leaderboard-rmb-controller-ada",
+      "branch": "2.0.0",
+      "buildNum": "5",
+      "dest": "./web-client/games/leaderboard-rmb-ada",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "game-content-4-snapshot-local",
+      "project": "game-content-4",
+      "gitRepo": "triviaplus-rmb-controller",
+      "branch": "1.0.2",
+      "buildNum": "1",
+      "dest": "./web-client/games/triviaplus-rmb",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "ships-snapshot-local",
+      "project": "ships",
+      "gitRepo": "triviaplus-rmb-controller-ada",
+      "branch": "2.0.0",
+      "buildNum": "4",
+      "dest": "./web-client/games/triviaplus-rmb-ada",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "game-content-4-snapshot-local",
+      "project": "game-content-4",
+      "gitRepo": "pickthreeplus-rmb-controller",
+      "branch": "1.0.1",
+      "buildNum": "3",
+      "dest": "./web-client/games/pickthreeplus-rmb",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "ships-snapshot-local",
+      "project": "ships",
+      "gitRepo": "pickthreeplus-rmb-controller-ada",
+      "branch": "2.0.0",
+      "buildNum": "4",
+      "dest": "./web-client/games/pickthreeplus-rmb-ada",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "bingo-plus-snapshot-local",
+      "project": "bingo-plus",
+      "gitRepo": "bingoplus-controller",
+      "branch": "1.0.0",
+      "buildNum": "26",
+      "dest": "./web-client/games/bingoplus",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "wheel-of-fortune-snapshot-local",
+      "project": "wheel-of-fortune",
+      "gitRepo": "wof-controller",
+      "branch": "1.2.0",
+      "buildNum": "5",
+      "dest": "./web-client/games/wheeloffortune",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "family-feud-snapshot-local",
+      "project": "family-feud",
+      "gitRepo": "family-feud-controller",
+      "branch": "1.0.0",
+      "buildNum": "21",
+      "dest": "./web-client/games/familyfeud",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "ships-snapshot-local",
+      "project": "ships",
+      "gitRepo": "dond-controller",
+      "branch": "0.5.0",
+      "buildNum": "2",
+      "dest": "./dond",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "ships-snapshot-local",
+      "project": "ships",
+      "gitRepo": "ships-web-client",
+      "branch": "0.5.0",
+      "buildNum": "304",
+      "subPath": "ships-web-client.zip",
+      "dest": "./ships-client",
+      "extract": true
+    },
+
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "game-content-4-snapshot-local",
+      "project": "game-content-4",
+      "gitRepo": "leaderboard-rmb-sircorp-controller",
+      "branch": "1.0.2",
+      "buildNum": "1",
+      "dest": "./web-client/games/leaderboard-rmb-sircorp",
+      "extract": true
+    },
+    {
+      "action": "artifactory",
+      "artifactoryRepo": "standalone-games-snapshot-local",
+      "project": "standalone-games",
+      "gitRepo": "gameserver-lite",
+      "branch": "0.0.1",
+      "buildNum": "48",
+      "subPath": "gameserver-lite.zip",
+      "dest": "./gs-lite",
+      "extract": true
+    },
+    {
+      "action": "exec",
+      "cmd": "docker build -t tp3-proxy-server:internal .",
+      "cwd": "../"
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  proxy-server:
+    environment:
+      - LOTTERY_CONTROLLER_CONFIG={
+        "webClientService":"${HOST_URL}",
+        "accountCookieName":"auth-account",
+        "mockGuest":${MOCK_GUEST},
+        "partner":"${STACK_PARTNER}"}
+
+  # for ships-service
+  # can also migrate keycloak to use this
+  postgres:
+    image: "${IMAGE_POSTGRES}"
+    container_name: postgres
+    entrypoint: "bash"
+    command: -c "mkdir -p /psqlcerts && cp -f /certs/timeplay.crt /certs/timeplay.key /psqlcerts/ && chmod 600 /psqlcerts/timeplay.crt /psqlcerts/timeplay.key && chown postgres:postgres /psqlcerts/timeplay.crt /psqlcerts/timeplay.key && docker-entrypoint.sh ${POSTGRES_HBA_CONFIG} -c ssl=on -c ssl_cert_file=/psqlcerts/timeplay.crt -c ssl_key_file=/psqlcerts/timeplay.key"
+    shm_size: ${POSTGRES_SHM_SIZE}
+    environment:
+      - APPLICATION_NAME=ships
+      - POSTGRES_DB=timeplay
+      - POSTGRES_USER=localhost
+      - POSTGRES_PASSWORD=e759330a-389e-491d-bdb2-91f03aa9ea6a
+      - POSTGRES_APP_USERNAME=app_client
+      - POSTGRES_APP_PASSWORD=${POSTGRES_APP_PASSWORD}
+      - POSTGRES_RO_USERNAME=readonly_client
+      - POSTGRES_RO_PASSWORD=${POSTGRES_RO_PASSWORD}
+    volumes:
+      - ${HOST_DATA}/postgres:/var/lib/postgresql/data
+      - ${HOST_CONFIG}/postgres/init-db.sh:/docker-entrypoint-initdb.d/1-init-db.sh:ro
+      - ${HOST_CONFIG}/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ${CERT_CONFIG}:/certs:ro
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    healthcheck:
+      test: pg_isready --user=$$POSTGRES_USER --dbname=$$POSTGRES_DB
+      interval: 10s
+      retries: 10
+      timeout: 5s
+    restart: unless-stopped
+
+  ships-service:
+    image: "${IMAGE_SHIPS_SERVICE}"
+    container_name: ships-service
+    environment:
+      - GIN_MODE=${S6_GIN_MODE}
+      - S6_PORT=80
+      - S6_DEBUG_AUTH=${AUTH_DEBUG}
+      - S6_REQUEST_TIMEOUT_SECONDS=${S6_REQUEST_TIMEOUT_SECONDS}
+      # Note: the golang mongo uri seems to require a '/' before the query
+      #       string starts, however nodejs will fail if that does exist, hence
+      #       why this has a '/' between the two strings and nodejs apps dont.
+      #       The error we get without it is:
+      #            failed to connect to mongo, error parsing uri: must have a / before the query ?
+      - S6_MONGO_URI=${MONGO_APP_CONNECTION_STRING}/${MONGO_CONNECTION_STRING_PROPERTIES}
+      - S6_POSTGRES_POOL_MAX_IDLE_CONNS=${S6_POSTGRES_POOL_MAX_IDLE_CONNS}
+      - S6_POSTGRES_POOL_MAX_OPEN_CONNS=${S6_POSTGRES_POOL_MAX_OPEN_CONNS}
+      - S6_POSTGRES_DB_ENDPOINT=postgres
+      - S6_POSTGRES_DB_PORT=5432
+      - S6_POSTGRES_DB_NAME=timeplay
+      - S6_POSTGRES_SSL_MODE=disable
+      - S6_POSTGRES_USERNAME=app_client
+      - S6_POSTGRES_PASSWORD=${POSTGRES_APP_PASSWORD}
+      - S6_KC_BASE_URL=${AUTH_URL}
+      - S6_KC_REALM=${AUTH_REALM}
+      - S6_KC_SERVICE_ACCOUNT_ID=${AUTH_SERVICE_ID}
+      - S6_KC_SERVICE_ACCOUNT_SECRET=${AUTH_SERVICE_SECRET}
+      - S6_KC_USER_PROXY_ACCOUNT_ID=${AUTH_USER_PROXY_ID}
+      - S6_KC_USER_PROXY_ACCOUNT_SECRET=${AUTH_USER_PROXY_SECRET}
+      - S6_SHIPS_STACK_PARTNER=${STACK_PARTNER}
+      - S6_SHIPS_AUDITORIUM_DEFINITIONS=${AUDITORIUM_DEFINITIONS}
+      - S6_SHIPS_SESSION_DEFINITIONS=${SESSION_DEFINITIONS}
+      - S6_SHIPS_PLAYLIST_MANAGER_URI=${INTERNAL_URL_PLAYLIST_MANAGER}
+      - S6_SHIPS_PLAYLIST_MANAGER_URI_EXT=${EXTERNAL_URL_PLAYLIST_MANAGER}
+      - S6_SHIPS_ASSET_MANAGER_URI=${INTERNAL_URL_ASSET_MANAGER}
+      - S6_SHIPS_ASSET_MANAGER_URI_EXT=${EXTERNAL_URL_ASSET_MANAGER}
+      - S6_SHIPS_GAMEROOM_SERVICE_URI=${INTERNAL_URL_GAME_ROOM}
+      - S6_SHIPS_GAMEROOM_SERVICE_URI_EXT=${EXTERNAL_URL_GAME_ROOM}
+      - S6_SHIPS_TRANSACTION_SERVICE_URI=${INTERNAL_URL_TRANSACTION_SERVICE}
+      - S6_SHIPS_TRANSACTION_SERVICE_URI_EXT=${EXTERNAL_URL_TRANSACTION_SERVICE}
+      - S6_SHIPS_REWARD_SERVICE_URI=${INTERNAL_URL_REWARD_SERVICE}
+      - S6_SHIPS_REWARD_SERVICE_URI_EXT=${EXTERNAL_URL_REWARD_SERVICE}
+      - S6_SHIPS_WEB_CLIENT_SERVICE_URI=${INTERNAL_URL_WEB_CLIENT_SERVICE}
+      - S6_SHIPS_WEB_CLIENT_SERVICE_URI_EXT=${EXTERNAL_URL_WEB_CLIENT_SERVICE}
+      - S6_SHIPS_WEB_CLIENT_URL=${HOST_URL}/frontend/web-client
+      - S6_SHIPS_SESSIONS_URI=${INTERNAL_URL_SESSIONS}
+      - S6_SHIPS_SESSIONS_URI_EXT=${EXTERNAL_URL_SESSIONS}
+      - S6_SHIPS_DOND_CLIENT_SERVICE_URI=${INTERNAL_WSS_DCS}
+      - S6_SHIPS_DOND_CLIENT_SERVICE_URI_EXT=${EXTERNAL_WSS_DCS}
+      - S6_SHIPS_DOND_CLIENT_URL=${HOST_URL}/frontend/dond
+      - S6_SHIPS_CLIENT_URL=${HOST_URL}/frontend/ships-client
+      - S6_INVENTORY_SERVICE_URI=${S6_INVENTORY_SERVICE_URI_EXT}
+      - S6_INVENTORY_SERVICE_URI_EXT=${S6_INVENTORY_SERVICE_URI_EXT}
+      - S6_SHIPS_HOST_NAME=${HOST_NAME}
+      - S6_COMPOSE_PROFILES=${COMPOSE_PROFILES}
+      - S6_SHIPS_LOTTERY_TAX_THRESHOLD_MULTIPLIER=${S6_SHIPS_LOTTERY_TAX_THRESHOLD_MULTIPLIER}
+      - S6_SHIPS_LOTTERY_TAX_THRESHOLD_MIN_AMOUNT=${S6_SHIPS_LOTTERY_TAX_THRESHOLD_MIN_AMOUNT}
+      - S6_SHIPS_PRIMARY_INTEGRATION=${S6_SHIPS_PRIMARY_INTEGRATION}
+      - S6_SHIPS_CASINO_INTEGRATION=${S6_SHIPS_CASINO_INTEGRATION}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      transaction-service:
+        condition: service_started
+    restart: unless-stopped

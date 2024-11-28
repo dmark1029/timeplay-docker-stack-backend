@@ -1,0 +1,104 @@
+###################### Filebeat Configuration Example #########################
+
+# You can find the full configuration reference here:
+# https://www.elastic.co/guide/en/beats/filebeat/index.html
+
+# ============================== Filebeat inputs ===============================
+
+filebeat.inputs:
+- type: filestream
+  id: update-logs
+  paths:
+    - /apps/timeplay/tp3-docker-stack/logs/*.log
+  processors:
+    - dissect:
+        field: message
+        tokenizer: '[%{timestamp}] %{message}'
+        target_prefix: ''
+        ignore_failure: true
+        overwrite_keys: true
+        trim_values: all
+        trim_chars: " \t\n"
+    - drop_event:
+        when:
+          equals:
+            message: ""
+- type: container
+  paths:
+    - '/apps/docker/containers/*/*.log'
+  combine_partial: true
+
+# ============================== Filebeat modules ==============================
+
+filebeat.config.modules:
+  # Glob pattern for configuration loading
+  path: ${path.config}/modules.d/*.yml
+
+  # Set to true to enable config reloading
+  reload.enabled: false
+
+  # Period on which files under path should be checked for changes
+  #reload.period: 10s
+
+# ======================= Elasticsearch template setting =======================
+
+setup.template.settings:
+  index.number_of_shards: 1
+  #index.codec: best_compression
+  #_source.enabled: false
+
+
+# ================================== General ===================================
+
+# The name of the shipper that publishes the network data. It can be used to group
+# all the transactions sent by a single shipper in the web interface.
+name: docker-stack
+
+# The tags of the shipper are included in their own field with each
+# transaction published.
+tags: ["docker-stack"]
+
+# ================================== Outputs ===================================
+
+# Configure what output to use when sending the data collected by the beat.
+
+# ------------------------------ Logstash Output -------------------------------
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+
+# ================================= Processors =================================
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_docker_metadata:
+      match_source_index: 3
+  - add_fields:
+      target: ''
+      fields:
+        stack_version: '${STACK_VERSION}'
+        partner: '${STACK_PARTNER}'
+        stack: '${STACK_NAME}'
+        license: '${GAMESERVER_LICENSE}'
+  - timestamp:
+      field: timestamp
+      timezone: Local
+      layouts:
+        - '2006-01-02T15:04:05.999999999Z'
+      test:
+        - '2021-08-30T20:56:36.866504414Z'
+
+# ================================== Logging ===================================
+
+# Sets log level. The default log level is info.
+# Available log levels are: error, warning, info, debug
+#logging.level: debug
+
+# At debug level, you can selectively enable logging only for some components.
+# To enable all selectors use ["*"]. Examples of other selectors are "beat",
+# "publisher", "service".
+#logging.selectors: ["*"]
+
+# ================================= Migration ==================================
+
+# This allows to enable 6.7 migration aliases
+#migration.6_to_7.enabled: true

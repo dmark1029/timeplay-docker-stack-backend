@@ -1,0 +1,63 @@
+{
+    "realm" : "Timeplay",
+    "users" : [ {
+      "id" : "2f2461ff-8634-4c3e-bd81-63d9ebb555b4",
+      "createdTimestamp" : 1717469641872,
+      "username" : "service-account-realm-management",
+      "enabled" : true,
+      "totp" : false,
+      "emailVerified" : false,
+      "serviceAccountClientId" : "realm-management",
+      "credentials" : [ ],
+      "disableableCredentialTypes" : [ ],
+      "requiredActions" : [ ],
+      "realmRoles" : [ "default-roles-timeplay" ],
+      "clientRoles" : {
+        "realm-management" : [ "uma_protection" ]
+      },
+      "notBefore" : 0,
+      "groups" : [ ]
+    }, {
+      "id" : "ccd5ce3e-54dc-46f2-b87f-b69a9e704b03",
+      "createdTimestamp" : 1717469642113,
+      "username" : "service-account-tp-guest",
+      "enabled" : true,
+      "totp" : false,
+      "emailVerified" : false,
+      "serviceAccountClientId" : "tp-guest",
+      "credentials" : [ ],
+      "disableableCredentialTypes" : [ ],
+      "requiredActions" : [ ],
+      "realmRoles" : [ "default-roles-timeplay" ],
+      "notBefore" : 0,
+      "groups" : [ ]
+    }, {
+      "id" : "1ed2bb12-700e-48da-b3a6-a5e5822791c3",
+      "createdTimestamp" : 1717469642203,
+      "username" : "service-account-tp-service",
+      "enabled" : true,
+      "totp" : false,
+      "emailVerified" : false,
+      "serviceAccountClientId" : "tp-service",
+      "credentials" : [ ],
+      "disableableCredentialTypes" : [ ],
+      "requiredActions" : [ ],
+      "realmRoles" : [ "default-roles-timeplay", "service", "admin" ],
+      "notBefore" : 0,
+      "groups" : [ ]
+    }, {
+      "id" : "ae0f6ba9-585a-4406-9213-d498eb39a626",
+      "createdTimestamp" : 1717469642140,
+      "username" : "service-account-tp-user-proxy",
+      "enabled" : true,
+      "totp" : false,
+      "emailVerified" : false,
+      "serviceAccountClientId" : "tp-user-proxy",
+      "credentials" : [ ],
+      "disableableCredentialTypes" : [ ],
+      "requiredActions" : [ ],
+      "realmRoles" : [ "default-roles-timeplay", "uma_authorization", "offline_access" ],
+      "notBefore" : 0,
+      "groups" : [ ]
+    } ]
+  }

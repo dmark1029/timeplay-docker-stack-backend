@@ -1,0 +1,7 @@
+services:
+    transaction-service:
+        environment:
+            - RCCL_GUESTSERVICE_URL=${RCCL_GUESTSERVICE_URL}
+            - RCCL_POSTCHARGE_URL=${RCCL_POSTCHARGE_URL}
+            - RCCL_POSTCHARGE_CALLBACK_URL=${EXTERNAL_URL_TRANSACTION_SERVICE}/payment/confirm
+            - rcclPostChargeSiteNumber=37000001

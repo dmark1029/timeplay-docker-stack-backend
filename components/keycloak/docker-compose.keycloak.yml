@@ -1,0 +1,46 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  ##### keycloak #####
+  keycloak:
+    image: "${IMAGE_KEYCLOAK}"
+    container_name: keycloak
+    deploy:
+      resources:
+        limits:
+          memory: 1000M
+    environment:
+      # Keycloak configurations
+      - KC_LOG_LEVEL=${KEYCLOAK_LOG_LEVEL}
+      - KC_SPI_THEME_WELCOME_THEME=keycloak
+
+      # Official keycloak container configurations
+      - KEYCLOAK_ADMIN=${KEYCLOAK_MASTER_USER}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_MASTER_PASS}
+
+      # importer variables
+      - KEYCLOAK_USER_REALM=${AUTH_REALM}
+      - S6_GUEST_SECRET=${AUTH_GUEST_SECRET}
+      - S6_SERVICE_SECRET=${AUTH_SERVICE_SECRET}
+      - S6_KC_USER_PROXY_ACCOUNT_SECRET=${AUTH_USER_PROXY_SECRET}
+    ports:
+      - 8000:8080
+    volumes:
+      - ${HOST_DATA}/keycloak:/opt/keycloak/data
+      - ${HOST_CONFIG}/keycloak/import:/import
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    healthcheck:
+      test: curl --fail --output /dev/null http://127.0.0.1:8080/auth/admin || exit 1
+      interval: 10s
+      retries: 10
+      timeout: 5s
+    restart: unless-stopped

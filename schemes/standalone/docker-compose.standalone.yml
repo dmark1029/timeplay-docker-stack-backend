@@ -1,0 +1,195 @@
+services:
+  proxy-server:
+    environment:
+      - GPS_FRONT_CONFIG={
+        "serverUrl":"${EXTERNAL_URL_GS_PACKAGE_SERVICE}",
+        "authServiceUrl":"${AUTH_URL_TOKEN}",
+        "logoutUrl":"${AUTH_LOGOUT_URL}",
+        "clientId":"${AUTH_USER_ID}",
+        "accountCookieName":"auth-account",
+        "authDebug":${AUTH_DEBUG}}
+      - USER_DASHBOARD_CONFIG={
+        "webClientService":"${HOST_URL}",
+        "shipsService":"${EXTERNAL_URL_SHIPS_SERVICE}",
+        "sessionService":"${HOST_URL}/sessions",
+        "sessionManager":"${HOST_URL}/sm",
+        "playlistManager":"${EXTERNAL_URL_PLAYLIST_MANAGER}",
+        "assetsEndpoint":"${HOST_URL}/assets",
+        "dondGameController":"${HOST_URL}/frontend/dond",
+        "lotteryController":"${HOST_URL}/frontend/lottery",
+        "dondClientService":"${EXTERNAL_WSS_DCS}",
+        "inventoryService":"${S6_INVENTORY_SERVICE_URI_EXT}",
+        "stripePublicKey":"${S6_STRIPE_PUBLIC_KEY}",
+        "accountCookieName":"auth-account",
+        "passengerCookieName":"passenger",
+        "mockGuest":${MOCK_GUEST},
+        "partner":"${STACK_PARTNER}",
+        "composeProfiles":"${COMPOSE_PROFILES}"}
+      - ADMIN_SERVICE_CONFIG={
+        "numPayoutSlots":20,
+        "authServiceUrl":"${AUTH_URL_TOKEN}",
+        "logoutUrl":"${AUTH_LOGOUT_URL}",
+        "clientId":"${AUTH_USER_ID}",
+        "webClientServiceUrl":"${HOST_URL}",
+        "sessionService":"${HOST_URL}/sessions",
+        "rewardServiceUrl":"${EXTERNAL_URL_REWARD_SERVICE}",
+        "transactionServiceUrl":"${EXTERNAL_URL_TRANSACTION_SERVICE}",
+        "cardServiceUrl":"${EXTERNAL_URL_CARD_SERVICE}",
+        "shipsServiceUrl":"${EXTERNAL_URL_SHIPS_SERVICE}",
+        "sku":"com.timeplay.apps.bingo.preshow",
+        "accountCookieName":"auth-account",
+        "authDebug":${AUTH_DEBUG},
+        "mockGuest":${MOCK_GUEST},
+        "wof":${WOF},
+        "partner":"${STACK_PARTNER}"}
+      - TP3_OPCON_CONFIG={
+        "authServiceUrl":"${AUTH_URL_TOKEN}",
+        "logoutUrl":"${AUTH_LOGOUT_URL}",
+        "clientId":"${AUTH_USER_ID}",
+        "sessionService":"${HOST_URL}/sessions",
+        "sessionManager":"${HOST_URL}/sm",
+        "webClientService":"${HOST_URL}",
+        "roomService":"${EXTERNAL_URL_GAME_ROOM}",
+        "rewardService":"${EXTERNAL_URL_REWARD_SERVICE}",
+        "playlistManager":"${EXTERNAL_URL_PLAYLIST_MANAGER}",
+        "shipsServiceUrl":"${HOST_URL}/ships-service",
+        "accountCookieName":"auth-account",
+        "sessionDefinitions":${SESSION_DEFINITIONS},
+        "targetRevenue":10000.00,
+        "authDebug":${AUTH_DEBUG},
+        "opconDebug":${OPCON_DEBUG}}
+
+  web-client-service:
+    environment:
+      - transactionServiceUrl=${INTERNAL_URL_TRANSACTION_SERVICE}
+      - sessionManagerUrl=http://session-manager
+      - userDashboardUrl=${HOST_URL}/frontend/user-dashboard
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      transaction-service:
+        condition: service_started
+
+  game-room:
+    environment:
+      - gsHostUri=${GS_HOST_PROC_URL}
+      - auditoriumDefinitions=${AUDITORIUM_DEFINITIONS}
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  session-manager:
+    environment:
+      - portalService=
+      - dataloaderUrl=
+      - rewardService=${INTERNAL_URL_REWARD_SERVICE}
+      - sessionService=${INTERNAL_URL_SESSIONS}
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  ##
+  ## Update service depends on
+  ##
+
+  update-service:
+    depends_on: # depends on all other containers
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      docker-socket-proxy:
+        condition: service_healthy
+      proxy-server:
+        condition: service_started
+      web-client-service:
+        condition: service_started
+      game-room:
+        condition: service_started
+      task-spawner:
+        condition: service_started
+      session-manager:
+        condition: service_started
+      asset-manager:
+        condition: service_started
+      playlist-manager:
+        condition: service_started
+      dispatcher:
+        condition: service_started
+      gs-package-service:
+        condition: service_started
+      sessions:
+        condition: service_started
+      transaction-service:
+        condition: service_started
+      reward-service:
+        condition: service_started
+
+  ##
+  ## Add depends_on for all containers reliant on keycloak
+  ##
+  gs-license-service:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  gs-package-service:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  transaction-service:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  reward-service:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  card-service:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  tp3-data-uploader:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  sessions:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  ships-service:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  task-spawner:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  asset-manager:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  playlist-manager:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  dispatcher:
+    depends_on:
+      keycloak:
+        condition: service_healthy

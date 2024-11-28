@@ -1,0 +1,6 @@
+[
+	{
+		"key": "com.timeplay.apps.stack.registrationForm",
+		"value": "{\"title\":\"Welcome To Timeplay\",\"subtitle\":\"Jack's Tuesday Night Trivia\",\"subtitles\":[\"If you're here, you're the team leader! You will answer the questions for your team.\",\"Enter your team nickname:\"],\"fields\":[{\"type\":\"text\",\"key\":\"nickname\",\"placeholder\":\"Nickname\"}],\"type\":\"basic\"}"
+	}
+]

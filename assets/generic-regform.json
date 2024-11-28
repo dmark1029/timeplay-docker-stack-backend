@@ -1,0 +1,6 @@
+[
+	{
+		"key": "com.timeplay.apps.stack.registrationForm",
+		"value": "{\"title\":\"Welcome To Timeplay\",\"subtitle\":\"Enter a nickname\",\"fields\":[{\"type\":\"text\",\"key\":\"nickname\",\"placeholder\":\"Nickname\"}],\"type\":\"basic\"}"
+	}
+]

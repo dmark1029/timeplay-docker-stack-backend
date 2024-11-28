@@ -1,0 +1,55 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  update-service:
+    image: "${IMAGE_UPDATE_SERVICE}"
+    container_name: update-service
+    environment:
+      - S6_COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME}
+      - S6_STACK_VERSION=${STACK_VERSION}
+      - PORT=80
+      - dbType=redis
+      - dbUrl=redis://redis:6379
+      - authDebug=${AUTH_DEBUG}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - remote_token_uri=${REMOTE_AUTH_URL}
+      - remote_id=${REMOTE_ID}
+      - remote_secret=${REMOTE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - dockerHost=http://docker-socket-proxy:2375
+      - dockerImage=${IMAGE_BUSYBOX}
+      - deployServiceUri=${DEPLOY_SERVICE_URI}
+      - packageServiceUri=${INTERNAL_URL_GS_PACKAGE_SERVICE}
+      - gsHostUri=${GS_HOST_PROC_URL}
+      - stackId=${STACK_ID}
+      - deployDir=/deploy
+      - playlistManagerUri=${INTERNAL_URL_PLAYLIST_MANAGER}
+      - portalUri=${PORTAL_URI}
+      - screenIds=${SCREEN_IDS}
+      - assetManagerUri=${INTERNAL_URL_ASSET_MANAGER}
+      - nexusUsername=${PUBLIC_REPO_USERNAME}
+      - nexusPassword=${PUBLIC_REPO_PASSWORD}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - '${HOST_NAME}:${HOST_IP}'
+    restart: unless-stopped
+    volumes:
+      - ../:/deploy
+
+
+  busybox:
+    image: "${IMAGE_BUSYBOX}"
+    container_name: dummy-box
+    networks:
+      - tp3-network
+    extra_hosts:
+      - '${HOST_NAME}:${HOST_IP}'

@@ -1,0 +1,5 @@
+services:
+  dond-client-service:
+    ports:
+      - 9246:9229
+    command: npm run start:dev

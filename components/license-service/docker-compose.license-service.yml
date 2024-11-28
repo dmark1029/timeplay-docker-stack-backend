@@ -1,0 +1,25 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  gs-license-service:
+    image: "${IMAGE_LICENSE_SERVICE}"
+    container_name: gs-license-service
+    environment:
+      - PORT=80
+      - dbUri=${MONGO_APP_CONNECTION_STRING}/license-service${MONGO_CONNECTION_STRING_PROPERTIES}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - authDebug=${AUTH_DEBUG}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - '${HOST_NAME}:${HOST_IP}'
+    restart: unless-stopped

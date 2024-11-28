@@ -1,0 +1,24 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  card-service:
+    image: "${IMAGE_CARD_SERVICE}"
+    container_name: card-service
+    environment:
+      - PORT=80
+      - authDebug=${AUTH_DEBUG}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - '${HOST_NAME}:${HOST_IP}'
+    restart: unless-stopped

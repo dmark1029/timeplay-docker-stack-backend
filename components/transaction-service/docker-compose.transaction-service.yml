@@ -1,0 +1,43 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  transaction-service:
+    image: "${IMAGE_TRANSACTION_SERVICE}"
+    container_name: transaction-service
+    environment:
+      - NODE_TLS_REJECT_UNAUTHORIZED=${TRANSACTION_SERVICE_VALIDATE_CERTS}
+      - PORT=80
+      - dbUri=${MONGO_APP_CONNECTION_STRING}/transaction-service${MONGO_CONNECTION_STRING_PROPERTIES}
+      - authDebug=${AUTH_DEBUG}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - STACK_PARTNER=${STACK_PARTNER}
+      - mockGuest=${MOCK_GUEST}
+      - SHIPS_SERVICE_URL=${INTERNAL_URL_SHIPS_SERVICE}
+      - CMAS_ENABLED=${CMAS_ENABLED}
+      - CMAS_SERVICE_URL=${CMAS_SERVICE_URL}
+      - CMAS_API_KEY=${CMAS_API_KEY}
+      - CMAS_VENDOR_ID=${CMAS_VENDOR_ID}
+      - CMAS_GAME_ID=${CMAS_GAME_ID}
+      - CMAS_LOCATION_CODE=${CMAS_LOCATION_CODE}
+      - CMAS_DEVICE_ID=${CMAS_DEVICE_ID}
+      - CMAS_USERNAME=${CMAS_USERNAME}
+      - CMAS_PASSWORD=${CMAS_PASSWORD}
+      - shipsInterfaceLocation=${TRANSACTION_INTERFACE_LOCATION}
+      - shipsPaymentLocation=${TRANSACTION_PAYMENT_LOCATION}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - '${HOST_NAME}:${HOST_IP}'
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped

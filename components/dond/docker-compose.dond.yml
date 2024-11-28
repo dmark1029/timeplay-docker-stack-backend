@@ -1,0 +1,49 @@
+services:
+  proxy-server:
+    environment:
+      - DOND_CONTROLLER_CONFIG={
+        "webClientService":"${HOST_URL}",
+        "dondClientService":"${EXTERNAL_WSS_DCS}",
+        "accountCookieName":"auth-account",
+        "mockGuest":${MOCK_GUEST},
+        "partner":"${STACK_PARTNER}"}
+
+  dond-client-service:
+    image: "${IMAGE_DOND_CLIENT_SERVICE}"
+    container_name: dond-client-service
+    environment:
+      - DOND_SERVICES_URL_BASE=${DCS_DOND_SERVICES_URL_BASE}
+      - PORT=80
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    restart: unless-stopped
+
+  tp3-data-uploader:
+    image: "${IMAGE_DATA_UPLOADER}"
+    container_name: tp3-data-uploader
+    environment:
+      - DATA_SERVICE_URL=${DU_DATA_SERVICE_URL}
+      - DATA_SERVICE_API_KEY=${DU_DATA_SERVICE_API_KEY}
+      - REWARD_SERVICE_URL=${INTERNAL_URL_REWARD_SERVICE}
+      - TRANSACTION_SERVICE_URL=${INTERNAL_URL_TRANSACTION_SERVICE}
+      - TOKEN_URL=${DU_TOKEN_URL}
+      - TOKEN_GRANT_TYPE=${DU_TOKEN_GRANT_TYPE}
+      - TOKEN_CLIENT_ID=${DU_TOKEN_CLIENT_ID}
+      - TOKEN_CLIENT_SECRET=${DU_TOKEN_CLIENT_SECRET}
+      - TOKEN_USERNAME=${DU_TOKEN_USERNAME}
+      - TOKEN_PASSWORD=${DU_TOKEN_PASSWORD}
+      - CLIENT_ID=${DU_CLIENT_ID}
+      - SHIP=${DU_SHIP}
+      - SCHEDULE=${DU_SCHEDULE}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - '${HOST_NAME}:${HOST_IP}'
+    depends_on:
+      reward-service:
+        condition: service_started
+      transaction-service:
+        condition: service_started
+    restart: unless-stopped

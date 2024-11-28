@@ -1,0 +1,15 @@
+[Unit]
+Description=Run the tp3 stack via docker compose
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+Environment="TMPDIR=/apps/docker/compose-tmp"
+ExecStartPre=-/usr/bin/bash -c "docker rm -f $(docker ps -aq --filter "name=task-80*")"
+ExecStart=/usr/bin/bash /apps/timeplay/tp3-docker-stack/current/run.sh start
+ExecStop=/usr/bin/bash /apps/timeplay/tp3-docker-stack/current/run.sh stop
+
+[Install]
+WantedBy=multi-user.target

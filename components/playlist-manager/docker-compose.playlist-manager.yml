@@ -1,0 +1,45 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  # nginx that serves static webpage and entry point to backend sevices
+  proxy-server:
+    environment:
+      - PM_FRONT_CONFIG={
+        "serverUrl":"${EXTERNAL_URL_PLAYLIST_MANAGER}",
+        "assetServerUrl":"${EXTERNAL_URL_ASSET_MANAGER}",
+        "authServiceUrl":"${AUTH_URL_TOKEN}",
+        "logoutUrl":"${AUTH_LOGOUT_URL}",
+        "clientId":"${AUTH_USER_ID}",
+        "production":"https://tools.timeplay.com",
+        "staging2":"https://stg-tools.timeplay.com",
+        "staging1":"https://23.253.52.172",
+        "authDebug":${AUTH_DEBUG}}
+
+  playlist-manager:
+    image: "${IMAGE_PLAYLIST_MANAGER}"
+    container_name: playlist-manager
+    environment:
+      - PORT=80
+      - dbUri=${MONGO_APP_CONNECTION_STRING}/playlist-manager${MONGO_CONNECTION_STRING_PROPERTIES}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - authDebug=${AUTH_DEBUG}
+      - assetManagerUrl=${INTERNAL_URL_ASSET_MANAGER}
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      asset-manager:
+        condition: service_started
+    restart: unless-stopped

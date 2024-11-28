@@ -1,0 +1,44 @@
+services:
+  reward-service:
+    ports:
+      - 9240:9229
+    command: npm run start:dev
+  sessions:
+    ports:
+      - 9241:9229
+    command: npm run start:dev
+  transaction-service:
+    ports:
+      - 9242:9229
+    command: npm run start:dev
+  tp3-data-uploader:
+    ports:
+      - 9247:9229
+    command: >
+      sh -c 'if [ "$DATA_UPLOADER_RUN_DEV_MODE" != "true" ]; then
+        sh ./start.sh
+      else
+        if [ "$DATA_UPLOADER_PAUSE_ON_START" = "true" ]; then
+          npm run start:debug
+        else
+          npm run start:dev
+        fi
+      fi'
+  ships-service:
+    environment:
+      - GOPROXY=${GOPROXY}
+      - GONOSUMDB=${GONOSUMDB}
+      - PAUSE_ON_START=${SHIPS_SERVICE_PAUSE_ON_START}
+    ports:
+      - 9243:2345
+  card-service:
+    environment:
+      - GOPROXY=${GOPROXY}
+      - GONOSUMDB=${GONOSUMDB}
+      - PAUSE_ON_START=${CARD_SERVICE_PAUSE_ON_START}
+    ports:
+      - 9245:2345
+
+  postgres:
+    ports:
+      - 5432:5432

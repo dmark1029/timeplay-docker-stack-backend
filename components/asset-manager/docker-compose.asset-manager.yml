@@ -1,0 +1,33 @@
+networks:
+  tp3-network:
+    name: tp3-network
+
+services:
+  asset-manager:
+    image: "${IMAGE_ASSET_MANAGER}"
+    container_name: asset-manager
+    environment:
+      - PORT=80
+      - dbUri=${MONGO_APP_CONNECTION_STRING}/asset-manager${MONGO_CONNECTION_STRING_PROPERTIES}
+      - auth_token_uri=${AUTH_URL_TOKEN}
+      - client_id=${AUTH_SERVICE_ID}
+      - client_secret=${AUTH_SERVICE_SECRET}
+      - issuers=${AUTH_ISSUERS}
+      - authDebug=${AUTH_DEBUG}
+      - storageHandler=fs
+      - fsFolder=/assets
+      - fsServerUrl=${HOST_URL}/assets
+    volumes:
+      - ${HOST_DATA}/assets:/assets
+    ulimits:
+      nofile:
+        soft: ${ULIMIT}
+        hard: ${ULIMIT}
+    networks:
+      - tp3-network
+    extra_hosts:
+      - "${HOST_NAME}:${HOST_IP}"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped

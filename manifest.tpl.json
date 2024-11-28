@@ -1,0 +1,26 @@
+{
+  "compose": {
+    "cmd": [
+      "chown -R timeplay:docker /apps/timeplay/tp3-docker-stack/installer",
+      "systemctl stop tp3-docker-compose",
+      "rm -rf /apps/timeplay/tp3-docker-stack/container-data/rabbitmq",
+      "RUN_INIT=true bash /apps/timeplay/tp3-docker-stack/installer/install.sh /apps/timeplay/tp3-docker-stack/installer/overrides.env"
+    ],
+    "gpsUri": "@{REPO_BASE_URL}/@{REPO_NAME}",
+    "uid": "docker-stack-installer/@{VERSION}/tp3-docker-stack-installer.zip",
+    "source": "nexus"
+  },
+  "container-images": [],
+  "games": [],
+  "generic": [],
+  "gameserver": {
+    "gpsUri": "https://ships-ss.timeplay.com/gps",
+    "uid": "win64/gameserver/4.4.0-17"
+  },
+  "gs-host-process": {
+    "cmd": "taskkill /im gs-host-process.exe && gs-host-process.exe",
+    "gpsUri": "https://ships-ss.timeplay.com/gps",
+    "uid": "win64/gs-host-process/2.1.0-5"
+  },
+  "version": "@{VERSION}"
+}

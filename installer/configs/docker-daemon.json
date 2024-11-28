@@ -1,0 +1,19 @@
+{
+    "data-root": "/apps/docker",
+    "default-ulimits": {
+        "nofile": {
+            "Hard": 64000,
+            "Name": "nofile",
+            "Soft": 64000
+        }
+    },
+    "log-driver": "json-file",
+    "log-level": "",
+    "log-opts": {
+        "cache-disabled": "false",
+        "cache-max-file": "5",
+        "cache-max-size": "20m",
+        "max-file": "5",
+        "max-size": "10m"
+    }
+}

@@ -1,0 +1,45 @@
+services:
+  web-client-service:
+    ports:
+      - 9230:9229
+    command: npm run start:dev
+  game-room:
+    ports:
+      - 9231:9229
+    command: npm run start:dev
+  session-manager:
+    ports:
+      - 9232:9229
+    command: npm run start:dev
+  playlist-manager:
+    ports:
+      - 9233:9229
+    command: npm run start:dev
+  asset-manager:
+    ports:
+      - 9236:9229
+    command: npm run start:dev
+  task-spawner:
+    environment:
+      - GOPROXY=${GOPROXY}
+      - GONOSUMDB=${GONOSUMDB}
+      - PAUSE_ON_START=${TASK_SPAWNER_PAUSE_ON_START}
+    ports:
+      - 9237:2345
+  mongodb:
+    ports:
+      - 8100:27017
+  redis:
+    ports:
+      - 6379:6379
+
+  dozzle:
+    image: ${DOZZLE_IMAGE:-amir20/dozzle:latest}
+    container_name: tp3-dozzle
+    ports:
+      - 8888:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - tp3-network
+    restart: unless-stopped

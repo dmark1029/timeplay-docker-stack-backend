@@ -1,0 +1,6 @@
+*.sh eol=lf
+*.yml eol=lf
+*.json eol=lf
+*.env eol=lf
+*.md eol=lf
+Tiltfile eol=lf
